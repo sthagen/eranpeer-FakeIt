@@ -18,16 +18,20 @@ struct RValueTypesTests : tpunit::TestFixture {
         ConcreteType() :
             state(10) {
         }
-        virtual void foo() override {
+        void foo() override {
         }
 
-        bool operator==(const ConcreteType& other) {
+        bool operator==(const ConcreteType& other) const {
             return (other.state == this->state);
         }
     };
 
     using CompositeType = std::pair < int, int > ;
 
+#if defined(__GNUG__) && !defined(__clang__) && __GNUC__ >= 13
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+#endif
     struct RValueInterface {
         virtual int intRValueArg(int&&) = 0;
         virtual int compositeRValueArg(CompositeType&&) = 0;
@@ -36,6 +40,9 @@ struct RValueTypesTests : tpunit::TestFixture {
         virtual RValueInterface& operator=(RValueInterface&&) = 0;
         virtual RValueInterface& operator=(const RValueInterface&) = 0;
     };
+#if defined(__GNUG__) && !defined(__clang__) && __GNUC__ >= 13
+#pragma GCC diagnostic pop
+#endif
 
     RValueTypesTests() :
         TestFixture(

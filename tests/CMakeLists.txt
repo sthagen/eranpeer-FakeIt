@@ -12,11 +12,13 @@ add_executable(FakeIt_tests
     gcc_type_info_tests.cpp
     miscellaneous_tests.cpp
     move_only_return_tests.cpp
+    moving_mocks_around.cpp
     msc_stubbing_multiple_values_tests.cpp
     msc_type_info_tests.cpp
     overloadded_methods_tests.cpp
     referece_types_tests.cpp
     remove_const_volatile_tests.cpp
+    return_template_specialization.cpp
     rvalue_arguments_tests.cpp
     sequence_verification_tests.cpp
     spying_tests.cpp
@@ -38,11 +40,24 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "^(Appl
     target_compile_options(FakeIt_tests PRIVATE -Wall -Wextra -Wno-ignored-qualifiers -O0 -g3)
 elseif(MSVC)
     target_compile_options(FakeIt_tests PRIVATE /W3 /sdl /Od)
+
+    if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64")
+        target_compile_definitions(FakeIt_tests PRIVATE FAKEIT_DISABLE_RTTI_DEPENDENT_TESTS)
+        message(STATUS "MSVC 64 bits detected: disabling RTTI-dependent tests as it isn't supported for this configuration.")
+    endif()
 endif()
 
 if(OVERRIDE_CXX_STANDARD_FOR_TESTS)
     set_target_properties(FakeIt_tests PROPERTIES CXX_STANDARD ${OVERRIDE_CXX_STANDARD_FOR_TESTS})
     message(STATUS "Building tests in C++${OVERRIDE_CXX_STANDARD_FOR_TESTS}.")
+endif()
+
+if(WARNINGS_AS_ERRORS_FOR_TESTS)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+        target_compile_options(FakeIt_tests PRIVATE -Werror)
+    elseif(MSVC)
+        target_compile_options(FakeIt_tests PRIVATE /WX)
+    endif()
 endif()
 
 if(ENABLE_SANITIZERS_IN_TESTS)
@@ -65,3 +80,5 @@ if(ENABLE_COVERAGE)
         message(SEND_ERROR "Code coverage requested but compiler is not compatible.")
     endif()
 endif()
+
+add_test(NAME FakeIt_tests COMMAND FakeIt_tests)

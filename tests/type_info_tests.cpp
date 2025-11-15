@@ -16,14 +16,17 @@ using namespace fakeit;
 struct TypeInfoTests : tpunit::TestFixture {
 
 	TypeInfoTests() :
-	tpunit::TestFixture(
-	//
-	TEST(TypeInfoTests::mock_should_use_same_typeid_as_mocked_class), //
-	TEST(TypeInfoTests::simple_inheritance_upcast), //
-	TEST(TypeInfoTests::dynamic_cast_to_same_type__with_concrete_type),
-	TEST(TypeInfoTests::dynamic_cast_to_same_type__with_abstract_type),
-	TEST(TypeInfoTests::simple_inheritance_dynamic_down_cast) //
-	)  //
+		tpunit::TestFixture(
+#ifndef FAKEIT_DISABLE_RTTI_DEPENDENT_TESTS
+			TEST(TypeInfoTests::mock_should_use_same_typeid_as_mocked_class),
+#endif
+			TEST(TypeInfoTests::simple_inheritance_upcast),
+#ifndef FAKEIT_DISABLE_RTTI_DEPENDENT_TESTS
+			TEST(TypeInfoTests::simple_inheritance_dynamic_down_cast),
+#endif
+			TEST(TypeInfoTests::dynamic_cast_to_same_type__with_concrete_type),
+			TEST(TypeInfoTests::dynamic_cast_to_same_type__with_abstract_type)
+		)
 	{
 	}
 
@@ -33,7 +36,8 @@ struct TypeInfoTests : tpunit::TestFixture {
 
 	void mock_should_use_same_typeid_as_mocked_class() {
 		Mock<SomeInterface> mock;
-		ASSERT_EQUAL(typeid(mock.get()), typeid(SomeInterface));
+		auto& mockRef = mock.get();
+		ASSERT_EQUAL(typeid(mockRef), typeid(SomeInterface));
 	}
 
 	struct ConcreteType {
@@ -48,7 +52,7 @@ struct TypeInfoTests : tpunit::TestFixture {
 
 	struct Left : public TopLeft {
 		int left;
-		virtual int l() override = 0;
+		int l() override = 0;
 	};
 
 	struct TopRight {
@@ -58,14 +62,14 @@ struct TypeInfoTests : tpunit::TestFixture {
 
 	struct Right : public TopRight {
 		int right;
-		virtual int r() override = 0;
+		int r() override = 0;
 	};
 
 	struct A : public Left
 	//, public Right
 	{
 		int a;
-		virtual int l() override { return 0; };
+		int l() override { return 0; };
 		//virtual int r() override { return 0; };
 	};
 
